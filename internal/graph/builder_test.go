@@ -31,6 +31,30 @@ func TestBuilderDedupAndSort(t *testing.T) {
 	}
 }
 
+func TestMergeEscalatesHealthAndFillsLabel(t *testing.T) {
+	b := NewBuilder()
+	// First: the rich node (model name) but only "healthy".
+	b.AddNode(Node{ID: "hardware:cpu", Type: NodeHardware, Label: "Intel Xeon", Health: HealthHealthy})
+	// Second: a resources probe with no label but a worse health signal.
+	b.AddNode(Node{ID: "hardware:cpu", Type: NodeHardware, Label: "", Health: HealthWarning,
+		Metadata: map[string]any{"utilizationPercent": 91.0}})
+
+	g := b.Build()
+	if len(g.Nodes) != 1 {
+		t.Fatalf("want 1 merged node, got %d", len(g.Nodes))
+	}
+	n := g.Nodes[0]
+	if n.Label != "Intel Xeon" {
+		t.Errorf("label = %q, want the non-empty one kept", n.Label)
+	}
+	if n.Health != HealthWarning {
+		t.Errorf("health = %q, want it escalated to warning", n.Health)
+	}
+	if n.Metadata["utilizationPercent"] != 91.0 {
+		t.Errorf("metadata not merged: %v", n.Metadata)
+	}
+}
+
 func TestCrossLinkAnchorsToOS(t *testing.T) {
 	g := Graph{Nodes: []Node{
 		{ID: "os:x:1", Type: NodeOS},

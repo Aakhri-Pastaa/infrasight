@@ -60,7 +60,9 @@ func edgeKey(e Edge) string {
 }
 
 // mergeNode keeps the first node's identity but fills empty fields and unions
-// metadata from the duplicate. The earliest, most specific data wins.
+// metadata from the duplicate. Health escalates to the worst signal from any
+// module, so e.g. a resources module reporting a full disk overrides an earlier
+// "healthy" for the same node regardless of merge order.
 func mergeNode(a, b Node) Node {
 	if a.Metadata == nil {
 		a.Metadata = make(map[string]any)
@@ -70,14 +72,36 @@ func mergeNode(a, b Node) Node {
 			a.Metadata[k] = v
 		}
 	}
+	if a.Label == "" {
+		a.Label = b.Label
+	}
 	if a.Version == "" {
 		a.Version = b.Version
 	}
-	if a.Health == HealthUnknown {
-		a.Health = b.Health
-	}
+	a.Health = worseHealth(a.Health, b.Health)
 	if a.Resource == nil {
 		a.Resource = b.Resource
 	}
 	return a
+}
+
+// worseHealth returns the more severe of two health values.
+func worseHealth(x, y Health) Health {
+	if healthRank(y) > healthRank(x) {
+		return y
+	}
+	return x
+}
+
+func healthRank(h Health) int {
+	switch h {
+	case HealthCritical:
+		return 3
+	case HealthWarning:
+		return 2
+	case HealthHealthy:
+		return 1
+	default:
+		return 0
+	}
 }

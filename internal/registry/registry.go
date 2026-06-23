@@ -12,6 +12,7 @@ import (
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/network"
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/osinfo"
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/packages"
+	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/resources"
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/services"
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/web"
 )
@@ -29,5 +30,6 @@ func All() []discovery.Module {
 		services.NewDocker(),
 		web.NewNginx(),
 		web.NewApache(),
+		resources.NewSystem(),
 	}
 }
