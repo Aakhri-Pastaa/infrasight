@@ -28,8 +28,11 @@ Output formats:
 
 - **JSON** (`infrasight.json`) — schema-tagged, deterministic, machine-readable.
 - **HTML** (`infrasight.html`) — single self-contained file, no CDN/fonts/network,
-  works offline. Summary cards, health findings, type filters, and search.
-  *(The interactive vis.js graph is v0.2; this report renders the same data.)*
+  works offline. An interactive **vis-network** dependency graph (shape by node
+  type, colour by health), with summary cards, critical/warning banners, search,
+  type filters, force-directed/hierarchical layouts, and a node detail panel.
+  The vis-network bundle is vendored and embedded, so the report needs nothing
+  external to open.
 
 ---
 
@@ -135,7 +138,9 @@ The engine calls `Available()` to skip modules whose OS/tools are absent, then
 
 ## Roadmap
 
-- **v0.2** — Docker, systemd, nginx/apache + SSL certs; interactive vis.js graph.
+- **Done** — interactive vis-network graph in the HTML report.
+- **v0.2** — Docker, systemd, nginx/apache + SSL certs; richer cross-linking
+  (process → port → website → cert) to make the graph denser.
 - **v0.3** — databases, resource profiling, dependency trees, health charts.
 - **v0.4** — security audit (`--security`), cloud metadata, CVE scan, `diff`.
 - **v0.5** — WASM plugins, `--watch` daemon + live dashboard.
