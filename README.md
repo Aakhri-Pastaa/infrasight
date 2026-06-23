@@ -178,6 +178,14 @@ See the design spec for the full module catalogue and data model.
 
 ---
 
+## Author
+
+**Kunal Patil** · [kunalrpatil324@gmail.com](mailto:kunalrpatil324@gmail.com)
+
+Designed and built end-to-end — the discovery engine, the typed graph model and
+cross-linking, the offline interactive vis-network report, and the per-OS probe
+suite (hardware, OS, network, packages, systemd, Docker, nginx/apache + TLS).
+
 ## License
 
-MIT © 2026 Aakhri-Pastaa
+MIT © 2026 Kunal Patil
