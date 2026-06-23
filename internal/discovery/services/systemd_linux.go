@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery"
-	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/pkgmap"
+	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/pkgbackend"
 	"github.com/Aakhri-Pastaa/infrasight/internal/graph"
 	"github.com/Aakhri-Pastaa/infrasight/pkg/shell"
 )
@@ -54,17 +54,21 @@ func (s *Systemd) Probe(ctx context.Context) (*discovery.Result, error) {
 		return nil, err
 	}
 
-	pkgCache := map[string]string{}
-	owner := func(path string) (string, bool) {
+	pkgCache := map[string][2]string{} // path -> {name, nodeID}
+	owner := func(path string) (name, id string, ok bool) {
 		if path == "" {
-			return "", false
+			return "", "", false
 		}
-		if p, ok := pkgCache[path]; ok {
-			return p, p != ""
+		if v, cached := pkgCache[path]; cached {
+			return v[0], v[1], v[0] != ""
 		}
-		p, _ := pkgmap.Owner(ctx, path)
-		pkgCache[path] = p
-		return p, p != ""
+		n, nodeID, found := pkgbackend.OwnerNode(ctx, path)
+		if !found {
+			pkgCache[path] = [2]string{}
+			return "", "", false
+		}
+		pkgCache[path] = [2]string{n, nodeID}
+		return n, nodeID, true
 	}
 
 	for _, block := range strings.Split(show, "\n\n") {
@@ -96,10 +100,10 @@ func (s *Systemd) Probe(ctx context.Context) (*discovery.Result, error) {
 		}
 
 		// The package that ships the unit file (links service -> package).
-		svcPkg, svcHasPkg := owner(kv["FragmentPath"])
+		svcPkg, svcPkgID, svcHasPkg := owner(kv["FragmentPath"])
 		if svcHasPkg {
 			meta["package"] = svcPkg
-			meta["packageId"] = pkgmap.NodeID(svcPkg)
+			meta["packageId"] = svcPkgID
 		}
 
 		res.Nodes = append(res.Nodes, graph.Node{
@@ -129,17 +133,17 @@ func (s *Systemd) Probe(ctx context.Context) (*discovery.Result, error) {
 		}
 		if exe, e := os.Readlink("/proc/" + mainPid + "/exe"); e == nil && exe != "" {
 			pmeta["exe"] = exe
-			pkg, ok := owner(exe)
+			name, id, ok := owner(exe)
 			if !ok && svcHasPkg {
-				pkg, ok = svcPkg, true
+				name, id, ok = svcPkg, svcPkgID, true
 			}
 			if ok {
-				pmeta["package"] = pkg
-				pmeta["packageId"] = pkgmap.NodeID(pkg)
+				pmeta["package"] = name
+				pmeta["packageId"] = id
 			}
 		} else if svcHasPkg {
 			pmeta["package"] = svcPkg
-			pmeta["packageId"] = pkgmap.NodeID(svcPkg)
+			pmeta["packageId"] = svcPkgID
 		}
 
 		res.Nodes = append(res.Nodes, graph.Node{

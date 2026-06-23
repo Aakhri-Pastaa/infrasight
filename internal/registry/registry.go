@@ -25,7 +25,7 @@ func All() []discovery.Module {
 		hardware.NewMemory(),
 		osinfo.NewDistro(),
 		network.NewPorts(),
-		packages.NewDpkg(),
+		packages.New(),
 		services.NewSystemd(),
 		services.NewDocker(),
 		web.NewNginx(),

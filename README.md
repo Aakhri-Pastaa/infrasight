@@ -24,7 +24,7 @@ well-known status/list commands are executed. InfraSight never modifies the host
 | `hardware.memory` | `/proc/meminfo` | RAM/swap totals + health from utilisation |
 | `os.distro` | `/etc/os-release`, `/proc/sys/kernel/osrelease` | distro, version, kernel, hostname (graph anchor) |
 | `network.ports` | `ss -tlnp` | TCP listening ports + owning processes (+ their package) |
-| `packages.dpkg` | `dpkg-query` | installed Debian/Ubuntu packages |
+| `packages` | dpkg / rpm / apk / pacman | installed packages (backend auto-selected by distro) |
 | `services.systemd` | `systemctl` | running services → main process → unit's package |
 | `services.docker` | `docker ps` | running containers → published host ports |
 | `web.nginx` | `/etc/nginx/**` configs | virtual hosts, listen ports, TLS certs, upstreams |
@@ -186,7 +186,7 @@ internal/
     services/             systemd + docker probes
     web/                  nginx + apache config parsers, vhost/cert builder
     resources/            CPU utilisation/load + filesystem usage
-    pkgmap/               resolve which package owns a file (for cross-linking)
+    pkgbackend/           package-manager abstraction (dpkg/rpm/apk/pacman)
     certinfo/             parse X.509 certs (stdlib, no openssl)
   registry/               assembles the module list (no import cycle)
   graph/                  Node/Edge schema, dedup Builder, cross-linking
@@ -220,10 +220,11 @@ The engine calls `Available()` to skip modules whose OS/tools are absent, then
 
 - **Done** — interactive vis-network graph; systemd + Docker + nginx/apache + TLS
   cert probes; resource profiling (CPU/load + disk); cross-link chains; drift
-  detection (`diff` + `--save`); `--redact` sharing; `--security` audit; CI
-  (vet, race, cross-compile, asset-checksum).
+  detection (`diff` + `--save`); `--redact` sharing; `--security` audit;
+  multi-distro packages (dpkg/rpm/apk/pacman); CI (vet, race, cross-compile,
+  asset-checksum).
 - **Next** — visual-layer rework (clearer for technical *and* non-technical
-  readers); multi-distro packages (rpm/apk); broader probe/engine test coverage.
+  readers); database probes.
 - **v0.3** — databases (Postgres/MySQL/Redis), language dependency trees
   (npm/pip/go), cloud metadata, CVE scan.
 - **v0.4** — WASM plugins, `--watch` daemon + live dashboard.

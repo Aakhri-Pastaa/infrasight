@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery"
-	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/pkgmap"
+	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/pkgbackend"
 	"github.com/Aakhri-Pastaa/infrasight/internal/graph"
 	"github.com/Aakhri-Pastaa/infrasight/pkg/shell"
 )
@@ -35,14 +35,18 @@ func (p *Ports) Probe(ctx context.Context) (*discovery.Result, error) {
 	}
 
 	// Resolve a process binary to its owning package once per unique path.
-	pkgCache := map[string]string{}
-	owner := func(path string) (string, bool) {
-		if p, ok := pkgCache[path]; ok {
-			return p, p != ""
+	pkgCache := map[string][2]string{} // path -> {name, nodeID}
+	owner := func(path string) (name, id string, ok bool) {
+		if v, cached := pkgCache[path]; cached {
+			return v[0], v[1], v[0] != ""
 		}
-		p, _ := pkgmap.Owner(ctx, path)
-		pkgCache[path] = p
-		return p, p != ""
+		n, nodeID, found := pkgbackend.OwnerNode(ctx, path)
+		if !found {
+			pkgCache[path] = [2]string{}
+			return "", "", false
+		}
+		pkgCache[path] = [2]string{n, nodeID}
+		return n, nodeID, true
 	}
 
 	for _, line := range strings.Split(out, "\n") {
@@ -86,9 +90,9 @@ func (p *Ports) Probe(ctx context.Context) (*discovery.Result, error) {
 				// graph builder can link this process to its PACKAGE node.
 				if exe, e := os.Readlink("/proc/" + pid + "/exe"); e == nil && exe != "" {
 					meta["exe"] = exe
-					if pkg, ok := owner(exe); ok {
-						meta["package"] = pkg
-						meta["packageId"] = pkgmap.NodeID(pkg)
+					if name, id, ok := owner(exe); ok {
+						meta["package"] = name
+						meta["packageId"] = id
 					}
 				}
 				res.Nodes = append(res.Nodes, graph.Node{
