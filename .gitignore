@@ -16,6 +16,9 @@
 /coverage.out
 *.test
 
+# Local test fixtures (may contain generated keys/certs) — never commit
+/.fixture/
+
 # Editor / OS cruft
 .idea/
 .vscode/

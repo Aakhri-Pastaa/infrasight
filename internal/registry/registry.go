@@ -13,6 +13,7 @@ import (
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/osinfo"
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/packages"
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/services"
+	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/web"
 )
 
 // All returns every registered module. Modules that cannot run on the current
@@ -26,5 +27,7 @@ func All() []discovery.Module {
 		packages.NewDpkg(),
 		services.NewSystemd(),
 		services.NewDocker(),
+		web.NewNginx(),
+		web.NewApache(),
 	}
 }
