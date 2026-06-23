@@ -25,14 +25,28 @@ well-known status/list commands are executed. InfraSight never modifies the host
 | `packages.dpkg` | `dpkg-query` | installed Debian/Ubuntu packages |
 | `services.systemd` | `systemctl` | running services → main process → unit's package |
 | `services.docker` | `docker ps` | running containers → published host ports |
+| `web.nginx` | `/etc/nginx/**` configs | virtual hosts, listen ports, TLS certs, upstreams |
+| `web.apache` | `/etc/apache2`, `/etc/httpd` configs | virtual hosts, ports, TLS certs, proxies |
+
+TLS certificates are parsed with the standard library (no `openssl`), and graded
+by expiry: **warning** under 30 days, **critical** once expired.
 
 **Cross-linking** ties these together into a real dependency graph rather than
 disconnected islands. After all modules merge, `graph.CrossLink()` infers edges
-from the data the nodes already carry: hardware/processes/services are anchored
-to the OS node, and anything that records the package providing it (a process
-binary, a systemd unit file) gets a `DEPENDS_ON` edge to that package. Result:
-chains like `rsyslog.service → rsyslogd → rsyslog (pkg)`, and — when a service's
-main process also listens — `service → process → port`.
+from the data the nodes already carry — no extra I/O. Hardware/processes/services
+are anchored to the OS node; anything that records the package providing it (a
+process binary, a systemd unit file) gets a `DEPENDS_ON` edge to that package.
+The web probes reuse the `port:tcp:<n>` node IDs, so vhosts splice into the same
+graph. The result is full chains:
+
+```
+process --LISTENS_ON--> port --SERVES--> website --PROXIES_TO--> port (upstream)
+cert    --ENCRYPTS--> website
+service --CONTAINS--> process --DEPENDS_ON--> package
+```
+
+e.g. `rsyslog.service → rsyslogd → rsyslog (pkg)`, and
+`nginx → :443 → api.example.com → :3000`, with the site's cert hanging off it.
 
 Output formats:
 
@@ -122,7 +136,9 @@ internal/
     hardware/ osinfo/     probe implementations (build-tagged per OS)
     network/ packages/
     services/             systemd + docker probes
+    web/                  nginx + apache config parsers, vhost/cert builder
     pkgmap/               resolve which package owns a file (for cross-linking)
+    certinfo/             parse X.509 certs (stdlib, no openssl)
   registry/               assembles the module list (no import cycle)
   graph/                  Node/Edge schema, dedup Builder, cross-linking
   output/                 Document model + json / html / terminal renderers
@@ -151,12 +167,12 @@ The engine calls `Available()` to skip modules whose OS/tools are absent, then
 ## Roadmap
 
 - **Done** — interactive vis-network graph; systemd + Docker probes;
-  package/service/process cross-linking.
-- **v0.2** — nginx/apache vhosts + SSL certs, and the deeper cross-link chain
-  (port → website → cert, service → upstream).
-- **v0.3** — databases, resource profiling, dependency trees, health charts.
-- **v0.4** — security audit (`--security`), cloud metadata, CVE scan, `diff`.
-- **v0.5** — WASM plugins, `--watch` daemon + live dashboard.
+  nginx/apache + TLS cert probes; the package/service/process and
+  port → website → cert cross-link chains.
+- **v0.2** — databases (Postgres/MySQL/Redis), resource profiling (CPU/mem/IO),
+  language dependency trees (npm/pip/go).
+- **v0.3** — security audit (`--security`), cloud metadata, CVE scan, `diff`.
+- **v0.4** — WASM plugins, `--watch` daemon + live dashboard.
 
 See the design spec for the full module catalogue and data model.
 
