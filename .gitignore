@@ -19,6 +19,9 @@
 # Local test fixtures (may contain generated keys/certs) — never commit
 /.fixture/
 
+# Local planning / review notes — kept on disk, not part of the repo
+/infrasight_analysis_backlog.md
+
 # Editor / OS cruft
 .idea/
 .vscode/

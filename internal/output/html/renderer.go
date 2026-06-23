@@ -225,6 +225,12 @@ table.meta td.k{color:var(--muted);white-space:nowrap;width:38%}
   var visEdges = doc.edges.map(function(e,i){
     return { id:'e'+i, from:e.source, to:e.target, title:e.relation, arrows:'to' };
   });
+  // Returns a PLAIN-TEXT tooltip. It is assigned to vis-network's node title
+  // property, which vis renders via textContent (not innerHTML), so a raw '<'
+  // or '&' is shown literally and cannot inject markup. Do NOT run this through
+  // esc() — that would double-escape and display a literal "&lt;". If you ever
+  // switch to an HTML title (an element), you MUST escape every interpolated
+  // value then. (Avoid backticks here: this whole template is a Go raw string.)
   function tooltip(n){
     var lines = [n.type + '   ' + (n.health||'unknown')];
     lines.push(n.label + (n.version ? '  '+n.version : ''));

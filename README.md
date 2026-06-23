@@ -111,6 +111,7 @@ infrasight scan [flags]
   --quiet                suppress the terminal summary
   --no-color
   --save string          also save this scan as a named baseline (for diff)
+  --redact               redact hostname, versions and bind addresses (safe to share)
   --deep, --security, --open   accepted; see roadmap
 
 infrasight diff <baseline> <current>   # drift report between two scans
@@ -139,6 +140,20 @@ back-to-back scans show *no* drift (no false positives from changing metrics).
 Exit codes — scan: `0` clean · `1` warnings · `2` critical findings.
 diff: `0` no drift · `1` drift · `2` a regression to critical health (useful as a
 CI gate).
+
+### Output is sensitive
+
+The scan **probes** are read-only and safe to run anywhere — but the **report they
+produce is not**. `infrasight.json` / `.html` contain the hostname, every open port
+and bind address, every running service, and the full installed-package inventory
+with versions — effectively a reconnaissance sheet for the host. Treat the output
+files as sensitive: store them like you would a config dump, and don't paste them
+into public issues.
+
+To share a report (a ticket, a vendor, a screenshot), use **`--redact`**, which
+removes the hostname, all versions, and bind addresses while keeping the topology
+(the JSON is marked `"redacted": true`). The scan prints a one-line reminder of
+the artifact's sensitivity on every run.
 
 ---
 

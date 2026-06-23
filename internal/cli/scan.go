@@ -33,6 +33,7 @@ type scanFlags struct {
 	security bool
 	deep     bool
 	save     string
+	redact   bool
 }
 
 func newScanCmd() *cobra.Command {
@@ -59,6 +60,7 @@ func newScanCmd() *cobra.Command {
 	fl.BoolVar(&f.security, "security", false, "enable the security audit module (not yet implemented)")
 	fl.BoolVar(&f.deep, "deep", false, "deep inspection (current modules already probe fully)")
 	fl.StringVar(&f.save, "save", "", "also save this scan as a named baseline for 'infrasight diff'")
+	fl.BoolVar(&f.redact, "redact", false, "redact hostname, versions and bind addresses (safe to share)")
 	return cmd
 }
 
@@ -95,6 +97,9 @@ func runScan(cmd *cobra.Command, f *scanFlags) error {
 		Version:     version.Version,
 	}
 	doc := output.BuildDocument(report.Graph, meta, report.Warnings)
+	if f.redact {
+		doc = output.Redact(doc)
+	}
 
 	if err := writeOutputs(cmd.OutOrStdout(), f, doc); err != nil {
 		return err
@@ -110,6 +115,13 @@ func runScan(cmd *cobra.Command, f *scanFlags) error {
 		}
 		fmt.Fprintln(cmd.OutOrStdout(), "saved baseline "+f.save+" -> "+path)
 	}
+	// The report is a host inventory — surface that it is sensitive.
+	if f.redact {
+		fmt.Fprintln(cmd.ErrOrStderr(), "note: written with --redact (hostname, versions and bind addresses removed)")
+	} else {
+		fmt.Fprintln(cmd.ErrOrStderr(), "note: output contains a host inventory (hostname, ports, services, packages, versions) — treat as sensitive; use --redact to share")
+	}
+
 	if !f.quiet {
 		output.PrintSummary(cmd.OutOrStdout(), doc, report.Skipped, report.Errors, color)
 	}

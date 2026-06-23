@@ -9,11 +9,12 @@ import (
 // Document is the top-level serialised scan result. Its JSON form matches the
 // infrasight schema (scan metadata + nodes + edges + summary).
 type Document struct {
-	Schema  string       `json:"$schema"`
-	Scan    ScanMeta     `json:"scan"`
-	Nodes   []graph.Node `json:"nodes"`
-	Edges   []graph.Edge `json:"edges"`
-	Summary Summary      `json:"summary"`
+	Schema   string       `json:"$schema"`
+	Scan     ScanMeta     `json:"scan"`
+	Nodes    []graph.Node `json:"nodes"`
+	Edges    []graph.Edge `json:"edges"`
+	Summary  Summary      `json:"summary"`
+	Redacted bool         `json:"redacted,omitempty"`
 }
 
 // ScanMeta describes a single scan run.
