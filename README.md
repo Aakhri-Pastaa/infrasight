@@ -1,13 +1,15 @@
 # InfraSight
 
+[![CI](https://github.com/Aakhri-Pastaa/infrasight/actions/workflows/ci.yml/badge.svg)](https://github.com/Aakhri-Pastaa/infrasight/actions/workflows/ci.yml)
+
 > A zero-config, read-only CLI agent that auto-discovers compute resources,
 > services, packages, and network endpoints on a host and renders them as an
 > interactive, exportable dependency graph.
 
-**Status:** `v0.1` — early scaffold. The architecture (module interface,
-concurrent engine, graph model, multi-format output) is in place and runs on
-real Linux hosts. A representative set of probes is implemented; the full
-catalogue from the design spec is on the roadmap below.
+**Status:** early but working. The architecture (concurrent module engine, typed
+graph model with cross-linking, multi-format output) is in place with 10 probe
+modules and drift detection, verified on real Linux hosts. The full catalogue
+from the design spec is on the roadmap below.
 
 Every probe is **non-destructive**: files are opened read-only and only
 well-known status/list commands are executed. InfraSight never modifies the host.
