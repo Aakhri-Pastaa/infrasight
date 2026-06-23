@@ -11,3 +11,7 @@ Makefile text eol=lf
 # Treat the embedded web assets as binary-ish (no eol munging).
 *.png binary
 *.ico binary
+
+# Vendored, minified third-party bundle — don't munge EOLs, don't count toward
+# GitHub language stats.
+internal/output/html/assets/vis-network.min.js -text linguist-vendored
