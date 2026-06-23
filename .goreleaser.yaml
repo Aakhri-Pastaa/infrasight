@@ -1,0 +1,46 @@
+version: 2
+
+project_name: infrasight
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: infrasight
+    main: ./cmd/infrasight
+    binary: infrasight
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/Aakhri-Pastaa/infrasight/pkg/version.Version={{.Version}}
+      - -X github.com/Aakhri-Pastaa/infrasight/pkg/version.Commit={{.ShortCommit}}
+      - -X github.com/Aakhri-Pastaa/infrasight/pkg/version.Date={{.Date}}
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot"
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"

@@ -1,0 +1,13 @@
+# Authored on Windows, built/run on Linux — force LF so Go tooling and shell
+# scripts behave identically everywhere.
+* text=auto eol=lf
+
+*.go   text eol=lf
+*.sh   text eol=lf
+*.mod  text eol=lf
+*.sum  text eol=lf
+Makefile text eol=lf
+
+# Treat the embedded web assets as binary-ish (no eol munging).
+*.png binary
+*.ico binary

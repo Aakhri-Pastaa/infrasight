@@ -1,0 +1,13 @@
+# Paths InfraSight skips while scanning the filesystem (gitignore-style globs).
+# These are sensible defaults; override with --ignore <file>.
+
+/proc/*/root
+/proc/*/cwd
+/sys/kernel/debug
+/run/user
+/var/lib/docker/overlay2
+/var/lib/containerd
+**/node_modules
+**/.git
+**/__pycache__
+**/*.sock

@@ -1,0 +1,23 @@
+# Build artifacts (anchored to repo root so the cmd/infrasight/ package dir is
+# NOT ignored)
+/bin/
+/dist/
+/infrasight
+/infrasight.exe
+
+# Scan output (generated, not source)
+/infrasight.json
+/infrasight.html
+/infrasight.svg
+*.scan.json
+
+# Local runtime / cache
+.infrasight/
+/coverage.out
+*.test
+
+# Editor / OS cruft
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
