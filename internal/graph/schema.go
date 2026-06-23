@@ -128,28 +128,56 @@ func (g *Graph) addEdgeUnique(e Edge) {
 	g.Edges = append(g.Edges, e)
 }
 
-// CrossLink adds implicit edges between modules that probe independently.
-// Today it anchors hardware and runtime entities to the OS node so the graph
-// is connected rather than a set of islands. This is where richer inference
-// (process -> port -> website -> cert) will grow.
+// CrossLink adds implicit edges between modules that probe independently — the
+// glue that turns a set of islands into a connected dependency graph. Modules
+// emit nodes in isolation; this pass joins them by data they already carry:
+//
+//   - hardware / runtime entities are anchored to the OS node, and
+//   - any node that records the package providing it (metadata "packageId")
+//     is linked to that PACKAGE node with DEPENDS_ON.
+//
+// It performs no I/O: every link is inferred from the merged node data. This is
+// also where richer inference (process -> port -> website -> cert) will grow.
 func (g *Graph) CrossLink() {
+	present := make(map[string]bool, len(g.Nodes))
 	var osID string
 	for _, n := range g.Nodes {
-		if n.Type == NodeOS {
+		present[n.ID] = true
+		if osID == "" && n.Type == NodeOS {
 			osID = n.ID
-			break
 		}
 	}
-	if osID == "" {
-		return
-	}
+
 	for _, n := range g.Nodes {
-		switch n.Type {
-		case NodeHardware:
-			g.addEdgeUnique(Edge{Source: osID, Target: n.ID, Relation: RelRunsOn})
-		case NodeProcess, NodeService, NodeContainer:
-			g.addEdgeUnique(Edge{Source: n.ID, Target: osID, Relation: RelRunsOn})
+		if osID != "" {
+			switch n.Type {
+			case NodeHardware:
+				g.addEdgeUnique(Edge{Source: osID, Target: n.ID, Relation: RelRunsOn})
+			case NodeProcess, NodeService, NodeContainer:
+				g.addEdgeUnique(Edge{Source: n.ID, Target: osID, Relation: RelRunsOn})
+			}
+		}
+		// Link an entity to the package that provides it (process binary,
+		// service unit file, etc.). The provider records the target node ID.
+		if pkgID, ok := metaString(n, "packageId"); ok && present[pkgID] {
+			g.addEdgeUnique(Edge{Source: n.ID, Target: pkgID, Relation: RelDependsOn})
 		}
 	}
 	g.sortStable()
+}
+
+// metaString reads a string-valued metadata field from a node.
+func metaString(n Node, key string) (string, bool) {
+	if n.Metadata == nil {
+		return "", false
+	}
+	v, ok := n.Metadata[key]
+	if !ok {
+		return "", false
+	}
+	s, ok := v.(string)
+	if !ok || s == "" {
+		return "", false
+	}
+	return s, true
 }

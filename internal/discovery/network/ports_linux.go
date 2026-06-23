@@ -4,11 +4,13 @@ package network
 
 import (
 	"context"
+	"os"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery"
+	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/pkgmap"
 	"github.com/Aakhri-Pastaa/infrasight/internal/graph"
 	"github.com/Aakhri-Pastaa/infrasight/pkg/shell"
 )
@@ -30,6 +32,17 @@ func (p *Ports) Probe(ctx context.Context) (*discovery.Result, error) {
 	res := &discovery.Result{}
 	if err != nil {
 		res.Warnings = append(res.Warnings, "network.ports: ss reported an error; results may be partial")
+	}
+
+	// Resolve a process binary to its owning package once per unique path.
+	pkgCache := map[string]string{}
+	owner := func(path string) (string, bool) {
+		if p, ok := pkgCache[path]; ok {
+			return p, p != ""
+		}
+		p, _ := pkgmap.Owner(ctx, path)
+		pkgCache[path] = p
+		return p, p != ""
 	}
 
 	for _, line := range strings.Split(out, "\n") {
@@ -68,16 +81,23 @@ func (p *Ports) Probe(ctx context.Context) (*discovery.Result, error) {
 		if len(fields) >= 6 {
 			if name, pid, ok := parseSSProcess(fields[5]); ok {
 				procID := "process:" + pid
+				meta := map[string]any{"pid": pid, "name": name}
+				// Resolve the binary and the package that ships it so the
+				// graph builder can link this process to its PACKAGE node.
+				if exe, e := os.Readlink("/proc/" + pid + "/exe"); e == nil && exe != "" {
+					meta["exe"] = exe
+					if pkg, ok := owner(exe); ok {
+						meta["package"] = pkg
+						meta["packageId"] = pkgmap.NodeID(pkg)
+					}
+				}
 				res.Nodes = append(res.Nodes, graph.Node{
-					ID:     procID,
-					Type:   graph.NodeProcess,
-					Label:  name,
-					Status: graph.StatusActive,
-					Health: graph.HealthHealthy,
-					Metadata: map[string]any{
-						"pid":  pid,
-						"name": name,
-					},
+					ID:           procID,
+					Type:         graph.NodeProcess,
+					Label:        name,
+					Status:       graph.StatusActive,
+					Health:       graph.HealthHealthy,
+					Metadata:     meta,
 					DiscoveredAt: time.Now().UTC(),
 					DiscoveredBy: p.Name(),
 				})

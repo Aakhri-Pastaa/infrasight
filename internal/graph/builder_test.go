@@ -57,3 +57,26 @@ func TestCrossLinkNoOSIsNoop(t *testing.T) {
 		t.Fatalf("want no edges without an OS node, got %d", len(g.Edges))
 	}
 }
+
+func TestCrossLinkPackageDependency(t *testing.T) {
+	g := Graph{Nodes: []Node{
+		{ID: "process:789", Type: NodeProcess, Metadata: map[string]any{"packageId": "package:apt:openssh-server"}},
+		{ID: "package:apt:openssh-server", Type: NodePackage},
+		// packageId that points at a node which does not exist -> no edge.
+		{ID: "process:42", Type: NodeProcess, Metadata: map[string]any{"packageId": "package:apt:ghost"}},
+	}}
+	g.CrossLink()
+
+	var deps int
+	for _, e := range g.Edges {
+		if e.Relation == RelDependsOn {
+			deps++
+			if e.Source != "process:789" || e.Target != "package:apt:openssh-server" {
+				t.Errorf("unexpected dep edge: %+v", e)
+			}
+		}
+	}
+	if deps != 1 {
+		t.Fatalf("want exactly 1 DEPENDS_ON edge (only the resolvable one), got %d", deps)
+	}
+}
