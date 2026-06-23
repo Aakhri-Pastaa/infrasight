@@ -112,7 +112,8 @@ infrasight scan [flags]
   --no-color
   --save string          also save this scan as a named baseline (for diff)
   --redact               redact hostname, versions and bind addresses (safe to share)
-  --deep, --security, --open   accepted; see roadmap
+  --security             audit the graph for security findings (certs, exposed ports)
+  --deep, --open         accepted; see roadmap
 
 infrasight diff <baseline> <current>   # drift report between two scans
 infrasight version
@@ -155,6 +156,22 @@ removes the hostname, all versions, and bind addresses while keeping the topolog
 (the JSON is marked `"redacted": true`). The scan prints a one-line reminder of
 the artifact's sensitivity on every run.
 
+### Security audit
+
+`infrasight scan --security` runs an audit pass over the graph (no extra host
+I/O) and reports findings ranked by severity — expired/expiring TLS certs, weak
+keys (e.g. RSA < 2048), and ports reachable from any interface. Findings appear
+in the terminal, in the JSON (`security` array), and as a banner in the HTML
+report, and they raise the exit code (high/critical → `2`), so it doubles as a
+CI security gate:
+
+```
+security findings (3):
+  critical  TLS certificate expired — legacy.example.com expired 844 days ago
+  high      Weak TLS key — weak.example.com uses a 1024-bit RSA key (< 2048)
+  medium    TLS certificate expiring soon — secure.example.com expires in 19 days
+```
+
 ---
 
 ## Architecture
@@ -175,6 +192,7 @@ internal/
   graph/                  Node/Edge schema, dedup Builder, cross-linking
   output/                 Document model + json / html / terminal renderers
   diff/                   drift comparison + report between two scans
+  security/               audit rules over the graph (certs, exposed ports)
   store/                  saved scans under ~/.infrasight/scans (baselines)
 pkg/
   shell/                  safe, timed, read-only command execution
@@ -202,11 +220,12 @@ The engine calls `Available()` to skip modules whose OS/tools are absent, then
 
 - **Done** — interactive vis-network graph; systemd + Docker + nginx/apache + TLS
   cert probes; resource profiling (CPU/load + disk); cross-link chains; drift
-  detection (`diff` + `--save` baselines).
+  detection (`diff` + `--save`); `--redact` sharing; `--security` audit; CI
+  (vet, race, cross-compile, asset-checksum).
 - **Next** — visual-layer rework (clearer for technical *and* non-technical
-  readers); GitHub Actions CI.
+  readers); multi-distro packages (rpm/apk); broader probe/engine test coverage.
 - **v0.3** — databases (Postgres/MySQL/Redis), language dependency trees
-  (npm/pip/go), security audit (`--security`), cloud metadata, CVE scan.
+  (npm/pip/go), cloud metadata, CVE scan.
 - **v0.4** — WASM plugins, `--watch` daemon + live dashboard.
 
 See the design spec for the full module catalogue and data model.

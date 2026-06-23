@@ -186,6 +186,12 @@ table.meta td.k{color:var(--muted);white-space:nowrap;width:38%}
   }).join('');
 
   var fhtml='';
+  if((doc.security||[]).length){
+    fhtml += '<div class="banner"><b>Security ('+doc.security.length+')</b>'+
+      doc.security.slice(0,12).map(function(f){
+        return '<div>['+esc(f.severity)+'] '+esc(f.title)+(f.detail?' — '+esc(f.detail):'')+'</div>';
+      }).join('')+'</div>';
+  }
   if((sum.criticals||[]).length) fhtml += banner('Critical', sum.criticals, '');
   if((sum.warnings||[]).length)  fhtml += banner('Warnings', sum.warnings, 'warn');
   document.getElementById('findings').innerHTML = fhtml;

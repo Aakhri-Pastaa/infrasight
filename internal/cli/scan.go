@@ -16,6 +16,7 @@ import (
 	htmlout "github.com/Aakhri-Pastaa/infrasight/internal/output/html"
 	jsonout "github.com/Aakhri-Pastaa/infrasight/internal/output/json"
 	"github.com/Aakhri-Pastaa/infrasight/internal/registry"
+	"github.com/Aakhri-Pastaa/infrasight/internal/security"
 	"github.com/Aakhri-Pastaa/infrasight/internal/store"
 	"github.com/Aakhri-Pastaa/infrasight/pkg/version"
 )
@@ -66,9 +67,6 @@ func newScanCmd() *cobra.Command {
 
 func runScan(cmd *cobra.Command, f *scanFlags) error {
 	color := !f.noColor && isTTY(os.Stdout)
-	if f.security {
-		fmt.Fprintln(cmd.ErrOrStderr(), "note: --security is not yet implemented in v0.1; skipping the audit module")
-	}
 	if f.open {
 		fmt.Fprintln(cmd.ErrOrStderr(), "note: --open is not yet implemented in v0.1")
 	}
@@ -97,6 +95,10 @@ func runScan(cmd *cobra.Command, f *scanFlags) error {
 		Version:     version.Version,
 	}
 	doc := output.BuildDocument(report.Graph, meta, report.Warnings)
+	if f.security {
+		// Audit the unredacted graph; findings reference node IDs, not secrets.
+		doc.Security = security.Audit(report.Graph.Nodes)
+	}
 	if f.redact {
 		doc = output.Redact(doc)
 	}
@@ -124,9 +126,24 @@ func runScan(cmd *cobra.Command, f *scanFlags) error {
 
 	if !f.quiet {
 		output.PrintSummary(cmd.OutOrStdout(), doc, report.Skipped, report.Errors, color)
+		if f.security {
+			security.PrintFindings(cmd.OutOrStdout(), doc.Security, color)
+		}
 	}
 
 	exitCode = doc.ExitCode()
+	if f.security {
+		switch security.WorstSeverity(doc.Security) {
+		case security.SevCritical, security.SevHigh:
+			if exitCode < 2 {
+				exitCode = 2
+			}
+		case security.SevMedium, security.SevLow:
+			if exitCode < 1 {
+				exitCode = 1
+			}
+		}
+	}
 	return nil
 }
 

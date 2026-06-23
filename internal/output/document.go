@@ -4,17 +4,19 @@ package output
 
 import (
 	"github.com/Aakhri-Pastaa/infrasight/internal/graph"
+	"github.com/Aakhri-Pastaa/infrasight/internal/security"
 )
 
 // Document is the top-level serialised scan result. Its JSON form matches the
 // infrasight schema (scan metadata + nodes + edges + summary).
 type Document struct {
-	Schema   string       `json:"$schema"`
-	Scan     ScanMeta     `json:"scan"`
-	Nodes    []graph.Node `json:"nodes"`
-	Edges    []graph.Edge `json:"edges"`
-	Summary  Summary      `json:"summary"`
-	Redacted bool         `json:"redacted,omitempty"`
+	Schema   string             `json:"$schema"`
+	Scan     ScanMeta           `json:"scan"`
+	Nodes    []graph.Node       `json:"nodes"`
+	Edges    []graph.Edge       `json:"edges"`
+	Summary  Summary            `json:"summary"`
+	Redacted bool               `json:"redacted,omitempty"`
+	Security []security.Finding `json:"security,omitempty"`
 }
 
 // ScanMeta describes a single scan run.
