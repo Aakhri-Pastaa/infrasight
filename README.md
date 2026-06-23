@@ -108,8 +108,10 @@ infrasight scan [flags]
   --timeout duration     global scan timeout           (default 5m)
   --quiet                suppress the terminal summary
   --no-color
+  --save string          also save this scan as a named baseline (for diff)
   --deep, --security, --open   accepted; see roadmap
 
+infrasight diff <baseline> <current>   # drift report between two scans
 infrasight version
 ```
 
@@ -120,9 +122,21 @@ infrasight scan                          # full scan -> JSON + HTML
 infrasight scan --format json            # just JSON
 infrasight scan --modules hardware,network
 infrasight scan --exclude-modules packages
+
+# Drift detection: capture a baseline, compare later
+infrasight scan --save baseline          # saved under ~/.infrasight/scans/
+infrasight scan --save now
+infrasight diff baseline now             # what changed (args = file path or saved name)
 ```
 
-Exit codes: `0` clean · `1` warnings · `2` critical findings.
+**Drift detection** (`diff`) reports nodes added/removed, version changes, and
+health changes between two scans — e.g. a package upgrade, a service that
+stopped, or a disk that crossed into critical. It compares by stable node ID, so
+back-to-back scans show *no* drift (no false positives from changing metrics).
+
+Exit codes — scan: `0` clean · `1` warnings · `2` critical findings.
+diff: `0` no drift · `1` drift · `2` a regression to critical health (useful as a
+CI gate).
 
 ---
 
@@ -131,17 +145,20 @@ Exit codes: `0` clean · `1` warnings · `2` critical findings.
 ```
 cmd/infrasight            entrypoint
 internal/
-  cli/                    Cobra commands (root, scan, version)
+  cli/                    Cobra commands (root, scan, diff, version)
   discovery/              Module interface + concurrent Engine
     hardware/ osinfo/     probe implementations (build-tagged per OS)
     network/ packages/
     services/             systemd + docker probes
     web/                  nginx + apache config parsers, vhost/cert builder
+    resources/            CPU utilisation/load + filesystem usage
     pkgmap/               resolve which package owns a file (for cross-linking)
     certinfo/             parse X.509 certs (stdlib, no openssl)
   registry/               assembles the module list (no import cycle)
   graph/                  Node/Edge schema, dedup Builder, cross-linking
   output/                 Document model + json / html / terminal renderers
+  diff/                   drift comparison + report between two scans
+  store/                  saved scans under ~/.infrasight/scans (baselines)
 pkg/
   shell/                  safe, timed, read-only command execution
   version/                build-time version metadata
@@ -166,12 +183,13 @@ The engine calls `Available()` to skip modules whose OS/tools are absent, then
 
 ## Roadmap
 
-- **Done** — interactive vis-network graph; systemd + Docker probes;
-  nginx/apache + TLS cert probes; the package/service/process and
-  port → website → cert cross-link chains.
-- **v0.2** — databases (Postgres/MySQL/Redis), resource profiling (CPU/mem/IO),
-  language dependency trees (npm/pip/go).
-- **v0.3** — security audit (`--security`), cloud metadata, CVE scan, `diff`.
+- **Done** — interactive vis-network graph; systemd + Docker + nginx/apache + TLS
+  cert probes; resource profiling (CPU/load + disk); cross-link chains; drift
+  detection (`diff` + `--save` baselines).
+- **Next** — visual-layer rework (clearer for technical *and* non-technical
+  readers); GitHub Actions CI.
+- **v0.3** — databases (Postgres/MySQL/Redis), language dependency trees
+  (npm/pip/go), security audit (`--security`), cloud metadata, CVE scan.
 - **v0.4** — WASM plugins, `--watch` daemon + live dashboard.
 
 See the design spec for the full module catalogue and data model.

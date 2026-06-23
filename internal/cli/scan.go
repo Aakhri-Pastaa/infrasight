@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -15,6 +16,7 @@ import (
 	htmlout "github.com/Aakhri-Pastaa/infrasight/internal/output/html"
 	jsonout "github.com/Aakhri-Pastaa/infrasight/internal/output/json"
 	"github.com/Aakhri-Pastaa/infrasight/internal/registry"
+	"github.com/Aakhri-Pastaa/infrasight/internal/store"
 	"github.com/Aakhri-Pastaa/infrasight/pkg/version"
 )
 
@@ -30,6 +32,7 @@ type scanFlags struct {
 	open     bool
 	security bool
 	deep     bool
+	save     string
 }
 
 func newScanCmd() *cobra.Command {
@@ -55,6 +58,7 @@ func newScanCmd() *cobra.Command {
 	fl.BoolVar(&f.open, "open", false, "open the HTML report in a browser (not yet implemented)")
 	fl.BoolVar(&f.security, "security", false, "enable the security audit module (not yet implemented)")
 	fl.BoolVar(&f.deep, "deep", false, "deep inspection (current modules already probe fully)")
+	fl.StringVar(&f.save, "save", "", "also save this scan as a named baseline for 'infrasight diff'")
 	return cmd
 }
 
@@ -94,6 +98,17 @@ func runScan(cmd *cobra.Command, f *scanFlags) error {
 
 	if err := writeOutputs(cmd.OutOrStdout(), f, doc); err != nil {
 		return err
+	}
+	if f.save != "" {
+		data, err := json.MarshalIndent(doc, "", "  ")
+		if err != nil {
+			return err
+		}
+		path, err := store.Save(f.save, data)
+		if err != nil {
+			return fmt.Errorf("saving baseline %q: %w", f.save, err)
+		}
+		fmt.Fprintln(cmd.OutOrStdout(), "saved baseline "+f.save+" -> "+path)
 	}
 	if !f.quiet {
 		output.PrintSummary(cmd.OutOrStdout(), doc, report.Skipped, report.Errors, color)

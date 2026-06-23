@@ -16,7 +16,7 @@ func newRootCmd() *cobra.Command {
 			"Every probe is non-destructive and read-only.",
 		SilenceUsage: true,
 	}
-	root.AddCommand(newScanCmd(), newVersionCmd())
+	root.AddCommand(newScanCmd(), newDiffCmd(), newVersionCmd())
 	return root
 }
 
