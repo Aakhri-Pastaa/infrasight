@@ -8,6 +8,7 @@ package registry
 
 import (
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery"
+	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/database"
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/hardware"
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/network"
 	"github.com/Aakhri-Pastaa/infrasight/internal/discovery/osinfo"
@@ -30,6 +31,7 @@ func All() []discovery.Module {
 		services.NewDocker(),
 		web.NewNginx(),
 		web.NewApache(),
+		database.New(),
 		resources.NewSystem(),
 	}
 }

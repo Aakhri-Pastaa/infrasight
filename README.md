@@ -29,6 +29,8 @@ well-known status/list commands are executed. InfraSight never modifies the host
 | `services.docker` | `docker ps` | running containers → published host ports |
 | `web.nginx` | `/etc/nginx/**` configs | virtual hosts, listen ports, TLS certs, upstreams |
 | `web.apache` | `/etc/apache2`, `/etc/httpd` configs | virtual hosts, ports, TLS certs, proxies |
+| `database` | postgres/mysql/redis configs + binaries | DATABASE nodes → listening port + owning package |
+| `resources.system` | `/proc/stat`, `/proc/mounts` + statfs | CPU utilisation/load + per-filesystem disk usage |
 
 TLS certificates are parsed with the standard library (no `openssl`), and graded
 by expiry: **warning** under 30 days, **critical** once expired.
@@ -185,6 +187,7 @@ internal/
     network/ packages/
     services/             systemd + docker probes
     web/                  nginx + apache config parsers, vhost/cert builder
+    database/             postgres/mysql/redis detection + config port parsing
     resources/            CPU utilisation/load + filesystem usage
     pkgbackend/           package-manager abstraction (dpkg/rpm/apk/pacman)
     certinfo/             parse X.509 certs (stdlib, no openssl)
@@ -221,12 +224,11 @@ The engine calls `Available()` to skip modules whose OS/tools are absent, then
 - **Done** — interactive vis-network graph; systemd + Docker + nginx/apache + TLS
   cert probes; resource profiling (CPU/load + disk); cross-link chains; drift
   detection (`diff` + `--save`); `--redact` sharing; `--security` audit;
-  multi-distro packages (dpkg/rpm/apk/pacman); CI (vet, race, cross-compile,
-  asset-checksum).
+  multi-distro packages (dpkg/rpm/apk/pacman); database probes
+  (Postgres/MySQL/Redis); CI (vet, race, cross-compile, asset-checksum).
 - **Next** — visual-layer rework (clearer for technical *and* non-technical
-  readers); database probes.
-- **v0.3** — databases (Postgres/MySQL/Redis), language dependency trees
-  (npm/pip/go), cloud metadata, CVE scan.
+  readers).
+- **v0.3** — language dependency trees (npm/pip/go), cloud metadata, CVE scan.
 - **v0.4** — WASM plugins, `--watch` daemon + live dashboard.
 
 See the design spec for the full module catalogue and data model.
