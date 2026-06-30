@@ -58,7 +58,7 @@ func newScanCmd() *cobra.Command {
 	fl.BoolVar(&f.quiet, "quiet", false, "suppress the terminal summary")
 	fl.BoolVar(&f.noColor, "no-color", false, "disable coloured output")
 	fl.BoolVar(&f.open, "open", false, "open the HTML report in a browser (not yet implemented)")
-	fl.BoolVar(&f.security, "security", false, "enable the security audit module (not yet implemented)")
+	fl.BoolVar(&f.security, "security", false, "enable the security audit module over the graph")
 	fl.BoolVar(&f.deep, "deep", false, "deep inspection (current modules already probe fully)")
 	fl.StringVar(&f.save, "save", "", "also save this scan as a named baseline for 'infrasight diff'")
 	fl.BoolVar(&f.redact, "redact", false, "redact hostname, versions and bind addresses (safe to share)")

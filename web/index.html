@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InfraSight Command Center</title>
+    <!-- Fonts are self-hosted (see style.css). No external requests. -->
+    <!-- vis-network is injected by the Go renderer as a base64 data: URI so the
+         report stays a single offline file; this classic script runs before the
+         deferred React module, so the global `vis` is ready for the graph view. -->
+    <script src="data:text/javascript;base64,__VIS_NETWORK_B64__"></script>
+  </head>
+  <body class="bg-[#09090b] text-[#fafafa] min-h-screen overflow-hidden">
+    <div id="root" class="h-full w-full"></div>
+    <script type="application/json" id="infrasight-data">
+      /*__INFRASIGHT_DATA__*/
+    </script>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

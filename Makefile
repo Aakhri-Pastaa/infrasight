@@ -15,12 +15,15 @@ VIS_DIR     := internal/output/html/assets
 VIS_FILE    := vis-network.min.js
 VIS_URL     := https://unpkg.com/vis-network@$(VIS_VERSION)/standalone/umd/$(VIS_FILE)
 
-.PHONY: all build run install test vet fmt tidy clean snapshot verify-assets vendor-vis vendor-vis-update
+.PHONY: all build frontend run install test vet fmt tidy clean snapshot verify-assets vendor-vis vendor-vis-update
 
 all: tidy vet verify-assets build
 
-build: ## Build the binary into ./bin (Linux target)
+build: ## Build the Go binary into ./bin (embeds the committed web build)
 	CGO_ENABLED=0 $(GO) build -trimpath -ldflags '$(LDFLAGS)' -o bin/$(BINARY) ./cmd/infrasight
+
+frontend: ## Rebuild the React UI (needs Node) and refresh the embedded shell
+	cd web && npm install && npm run build && cp dist/index.html ../internal/output/html/assets/index.html
 
 run: build ## Build then run a scan
 	./bin/$(BINARY) scan

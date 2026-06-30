@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Self-hosted, subset Material Symbols (only the icons this app uses, ~44 KB).
+   Fetched once from Google and bundled; the report makes NO network calls. */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url('./fonts/material-symbols.woff2') format('woff2');
+}
+
+:root {
+  /* Obsidian - High-Contrast Dark Named Colors */
+  --bg: #09090b;
+  --surface: #0c0c0f;
+  --surface-container-lowest: #09090b;
+  --surface-container-low: #0f0f12;
+  --surface-container: #121215;
+  --surface-container-high: #18181b;
+  --surface-container-highest: #1e1e22;
+  
+  --primary: #a78bfa;
+  --primary-container: #7c3aed;
+  --primary-fixed-dim: #c4b5fd;
+  
+  --secondary: #71717a;
+  --secondary-container: #27272a;
+  
+  --tertiary: #34d399; /* Success state */
+  --tertiary-container: #065f46;
+  
+  --error: #ef4444;
+  --error-container: #3b1111;
+  
+  --outline: #52525b;
+  --outline-variant: #27272a;
+  
+  --on-background: #fafafa;
+  --on-surface: #fafafa;
+  --on-surface-variant: #a1a1aa;
+  --on-primary: #0a0012;
+  --on-primary-container: #ede9fe;
+  
+  --border: #27272a;
+  --border-glow: rgba(167, 139, 250, 0.25);
+  --border-focus: #a78bfa;
+  --shadow: rgba(0, 0, 0, 0.65);
+}
+
+@media (prefers-color-scheme: light) {
+  /* Maintain dark theme preference for the developer UI as requested by North Star */
+  :root {
+    --bg: #09090b;
+    --surface: #0c0c0f;
+    --primary: #a78bfa;
+    --tertiary: #34d399;
+    --error: #ef4444;
+  }
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background-color: var(--bg);
+  color: var(--on-background);
+  font-family: 'Geist', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Material Symbols Outlined Custom configurations */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 22;
+}
+
+.material-symbols-outlined.fill-icon {
+  font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 22;
+}
+
+/* Ambient Pulsing Background Glows */
+.ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(140px);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: screen;
+}
+.glow-1 {
+  width: 600px;
+  height: 600px;
+  background: var(--primary);
+  top: -150px;
+  left: -150px;
+  animation: pulse-slow 25s infinite alternate;
+}
+.glow-2 {
+  width: 500px;
+  height: 500px;
+  background: var(--tertiary);
+  bottom: -100px;
+  right: -100px;
+  animation: pulse-slow 20s infinite alternate-reverse;
+}
+
+@keyframes pulse-slow {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.05; }
+  100% { transform: scale(1.2) translate(40px, 20px); opacity: 0.12; }
+}
+
+/* Simulated Dot Pattern */
+.dot-pattern {
+  background-image: radial-gradient(rgba(167, 139, 250, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Glassmorphic Panel Styles */
+.hud-panel {
+  background-color: rgba(18, 18, 21, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px var(--shadow);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hud-panel:hover {
+  border-color: var(--border-glow);
+}
+
+/* Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}
+
+/* Diff coloring options */
+.diff-added {
+  background-color: rgba(52, 211, 153, 0.08);
+  color: #34d399;
+}
+.diff-removed {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+.diff-changed {
+  background-color: rgba(250, 204, 21, 0.08);
+  color: #facc15;
+}
+
+/* vis-network customized overrides */
+#net {
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+.vis-network {
+  outline: none;
+}
+
+/* Node pulse indicators */
+@keyframes pulse-ring {
+  0% { transform: scale(0.85); opacity: 0.4; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+.node-pulse-active::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 2px solid var(--primary);
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* Custom switch element */
+.switch-input:checked ~ .switch-dot {
+  transform: translateX(100%);
+  background-color: #fafafa;
+}
+.switch-input:checked ~ .switch-bg {
+  background-color: var(--primary);
+}
