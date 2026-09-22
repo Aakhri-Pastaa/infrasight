@@ -16,8 +16,9 @@ real chains, output as JSON + a single self-contained interactive HTML report.
 Every probe is non-destructive (files O_RDONLY; only read-only commands).
 
 - **Repo:** `A:\infrasight` (Windows) = `/mnt/a/infrasight` (WSL).
-- **GitHub:** https://github.com/Aakhri-Pastaa/infrasight (private). Author: Kunal
-  Patil <kunalrpatil324@gmail.com> only — **no AI attribution** in commits/docs.
+- **GitHub:** https://github.com/Aakhri-Pastaa/infrasight (public). Author: Kunal
+  Patil <kunalrpatil324@gmail.com> only — **no AI co-author trailers** in
+  commits; the README carries an AI disclosure section.
 
 ---
 
