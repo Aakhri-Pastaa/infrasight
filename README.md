@@ -6,6 +6,7 @@
 
 > [!NOTE]
 > **Status: pre-1.0, early but working.** The scanner — 11 discovery modules, cross-linking, drift detection, `--redact` and `--security` — is tested and runs on real Linux hosts. The HTML report is not finished: its Security tab currently shows sample findings instead of the scan's, and its Deploy Agent tab is a stub. See [Status and limitations](#status-and-limitations).
+>
 > Designed and directed by Kunal Patil; developed with AI coding assistants. See [AI disclosure](#ai-disclosure).
 
 ## What it does
