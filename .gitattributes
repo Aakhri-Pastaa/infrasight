@@ -15,3 +15,7 @@ Makefile text eol=lf
 # Vendored, minified third-party bundle — don't munge EOLs, don't count toward
 # GitHub language stats.
 internal/output/html/assets/vis-network.min.js -text linguist-vendored
+
+# Built output of web/ (npm run build), committed so `make build` needs no Node.
+# Generated — keep it out of the language stats; the source is web/src/.
+internal/output/html/assets/index.html linguist-generated
